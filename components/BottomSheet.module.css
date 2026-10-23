@@ -1,0 +1,50 @@
+.sheet {
+  width: 100%;
+  max-width: 560px;
+  max-height: 90dvh;
+  margin: auto auto 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  overflow: visible;
+}
+
+.sheet::backdrop { background: rgba(10, 14, 30, .34); }
+.sheet[open]::backdrop { animation: fade .2s var(--ease); }
+.sheet[open] .body { animation: slide-up .24s var(--ease); }
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 20px calc(20px + var(--safe-bottom));
+  /* Heaviest glass in the app: only exists while a sheet is open. */
+  background-color: var(--glass-sheet);
+  background-image: var(--glass-sheen);
+  backdrop-filter: var(--blur-sheet);
+  -webkit-backdrop-filter: var(--blur-sheet);
+  border: 1px solid var(--glass-border);
+  border-bottom: 0;
+  border-radius: var(--radius-l) var(--radius-l) 0 0;
+  box-shadow: inset 0 1px 0 var(--glass-edge), 0 -12px 40px -8px rgba(20, 30, 70, .22);
+}
+
+.grabber {
+  align-self: center;
+  width: 36px; height: 5px;
+  margin-bottom: 4px;
+  border-radius: 999px;
+  background: var(--separator);
+}
+
+.title { font-size: 20px; }
+
+/* On wide screens it floats as a centred card. */
+@media (min-width: 900px) {
+  .sheet { margin: auto; }
+  .body { border-radius: var(--radius-l); border-bottom: 1px solid var(--glass-border); padding-bottom: 20px; }
+}
+
+@keyframes slide-up { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }

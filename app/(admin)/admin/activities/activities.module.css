@@ -1,0 +1,69 @@
+.toolbar { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+
+.item { gap: 8px; padding-left: 8px; }
+.item[data-inactive] .main { opacity: .55; }
+
+.order { display: flex; flex-direction: column; flex: none; }
+.arrow {
+  width: 44px; height: 30px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-2);
+  font-size: 12px;
+  border-radius: 8px;
+}
+.arrow:disabled { opacity: .25; }
+.arrow:not(:disabled):hover { background: var(--bg); color: var(--text); }
+
+.main {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--tap);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  color: var(--text);
+}
+
+.pill {
+  flex: none;
+  min-width: 40px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--teal-soft);
+  color: var(--teal-text);
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.help { margin: 10px 4px 0; font-size: 13px; color: var(--text-2); }
+
+.formGroup { box-shadow: none; border: 1px solid var(--separator); }
+
+.deleteLink {
+  min-height: var(--tap);
+  border: 0;
+  background: none;
+  color: var(--coral-text);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.sheetText { color: var(--text-2); }
+.sheetActions { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.cancel {
+  min-height: 50px;
+  border: 0;
+  border-radius: var(--radius-m);
+  background: var(--glass-1);
+  box-shadow: inset 0 1px 0 var(--glass-edge), inset 0 0 0 1px var(--glass-border);
+  color: var(--text);
+  font-size: 17px;
+  font-weight: 600;
+}

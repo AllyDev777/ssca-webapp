@@ -1,0 +1,16 @@
+.controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+.count { font-size: 13px; color: var(--text-2); text-align: center; }
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  margin-top: calc(8px + var(--safe-top));
+  margin-bottom: -40px; /* sits above the large title without pushing it down */
+  font-size: 17px;
+  position: relative;
+  z-index: 1;
+}
+@media (min-width: 900px) {
+  .back { margin-top: 8px; }
+}

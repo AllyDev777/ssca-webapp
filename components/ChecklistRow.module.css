@@ -1,0 +1,86 @@
+.item { position: relative; list-style: none; }
+
+/* Inset hairline between rows (starts after the check circle) */
+.item + .item::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 60px; right: 0;
+  height: 1px;
+  background: var(--separator);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 60px;
+  padding: 12px 16px;
+  cursor: pointer;
+  user-select: none;
+}
+.row[data-disabled] { cursor: default; }
+
+.input {
+  position: absolute;
+  opacity: 0;
+  width: 1px; height: 1px;
+  pointer-events: none;
+}
+
+.check {
+  position: relative;
+  flex: none;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 2px solid var(--teal);
+  display: grid;
+  place-items: center;
+}
+
+/* Fill + tick scale in on completion (transform/opacity only). */
+.fill {
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: var(--leaf);
+  transform: scale(0);
+  transition: transform .2s var(--ease);
+}
+.tick {
+  position: relative;
+  color: #fff;
+  opacity: 0;
+  transform: scale(.6);
+  transition: opacity .15s var(--ease), transform .2s var(--ease);
+}
+.input:checked + .check .fill { transform: scale(1); }
+.input:checked + .check .tick { opacity: 1; transform: scale(1); }
+.input:checked + .check[data-animate] { animation: spring .24s var(--ease); }
+
+.input:focus-visible + .check { outline: 3px solid var(--teal); outline-offset: 3px; }
+
+.input:disabled:not(:checked) + .check { border-color: var(--separator); }
+
+.text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.title { font-weight: 500; }
+.desc { font-size: 14px; color: var(--text-2); line-height: 1.35; }
+
+.pill {
+  flex: none;
+  min-width: 40px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--teal-soft);
+  color: var(--teal-text);
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+}
+.input:checked ~ .pill { background: var(--leaf-soft); color: var(--text); }
+
+@keyframes spring {
+  0% { transform: scale(1); }
+  40% { transform: scale(.86); }
+  75% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}

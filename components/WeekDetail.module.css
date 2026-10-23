@@ -1,0 +1,25 @@
+.summary {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.score { font-size: 22px; font-weight: 700; }
+.meta { color: var(--text-2); font-size: 15px; }
+
+.status {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.status[data-state="submitted"] { background: var(--leaf-soft); }
+.status[data-state="missed"] { background: var(--coral-soft); }
+
+.list { padding: 0; }

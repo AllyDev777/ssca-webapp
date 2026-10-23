@@ -1,0 +1,23 @@
+.figure { display: flex; flex-direction: column; gap: 10px; }
+.svg { width: 100%; height: auto; overflow: visible; }
+
+.grid { stroke: var(--separator); stroke-width: 1; }
+.axis { fill: var(--text-2); font-size: 9.5px; font-family: var(--font); font-variant-numeric: tabular-nums; }
+
+.line { fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.dot { fill: var(--surface); stroke: currentColor; stroke-width: 2; }
+
+.teal { color: var(--teal); }
+.sun { color: var(--sun); }
+
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend span::before { content: ""; width: 14px; height: 3px; border-radius: 2px; }
+.legend [data-tone="teal"]::before { background: var(--teal); }
+.legend [data-tone="sun"]::before { background: var(--sun); }

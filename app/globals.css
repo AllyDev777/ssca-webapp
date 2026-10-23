@@ -1,0 +1,268 @@
+/* Design tokens + base styles. Component styles live in CSS Modules. */
+
+:root {
+  /* Brand */
+  --navy: #2E3A87;        /* primary text accents, buttons, wordmark */
+  --teal: #1A9AA8;        /* primary action / progress */
+  --teal-soft: #E3F4F5;
+  --sun: #F2C14E;         /* streaks, highlights */
+  --sun-soft: #FDF5DF;
+  --coral: #EF6A4C;       /* pending / warnings (never harsh red) */
+  --coral-soft: #FDECE7;
+  --leaf: #4CB860;        /* completed */
+  --leaf-soft: #E7F6EA;
+
+  /* Neutrals (iOS-like) */
+  --bg: #F4F6FA;          /* grouped background */
+  --surface: #FFFFFF;
+  --text: #1C1F33;
+  --text-2: #5B6176;      /* a touch darker than iOS grey: stays AA over tinted glass */
+  --separator: rgba(60, 60, 67, 0.12);
+
+  /*
+   * Liquid glass. Performance rule: real backdrop blur (--blur-*) is used only on
+   * chrome that content scrolls *under* (tab bar, title bar, sheet, toast). Cards sit
+   * over the static ambient gradient, where blur would be invisible but costly, so
+   * they get "optical" glass: translucent tint + sheen + edge light + layered shadow.
+   */
+  --ambient-base: linear-gradient(180deg, #EBF0F7 0%, #F4F6FA 55%, #EEF1F7 100%);
+  --ambient:
+    radial-gradient(55% 40% at 10% -6%, rgba(26, 154, 168, .13), transparent 70%),
+    radial-gradient(45% 38% at 100% 4%, rgba(46, 58, 135, .10), transparent 70%),
+    radial-gradient(50% 42% at 92% 100%, rgba(242, 193, 78, .14), transparent 70%),
+    radial-gradient(40% 32% at 0% 92%, rgba(239, 106, 76, .07), transparent 70%);
+
+  --glass-1: rgba(255, 255, 255, .52);   /* subtle: tiles, controls, inputs */
+  --glass-2: rgba(255, 255, 255, .66);   /* standard cards */
+  --glass-3: rgba(255, 255, 255, .80);   /* prominent panels, selected segments */
+  --glass-chrome: rgba(248, 250, 253, .72); /* blurred bars */
+  --glass-sheet: rgba(250, 251, 254, .82);
+  --glass-border: rgba(255, 255, 255, .72);
+  --glass-edge: rgba(255, 255, 255, .95);   /* top highlight where light catches */
+  --glass-sheen: linear-gradient(135deg, rgba(255, 255, 255, .55) 0%, rgba(255, 255, 255, .12) 38%, rgba(255, 255, 255, 0) 60%);
+  --glass-glow: radial-gradient(120% 90% at 0% 0%, rgba(26, 154, 168, .14), transparent 55%);
+  --glass-shadow:
+    0 1px 1px rgba(30, 45, 110, .04),
+    0 6px 18px -6px rgba(30, 45, 110, .12),
+    0 18px 40px -18px rgba(30, 45, 110, .14);
+  --glass-shadow-strong:
+    0 1px 2px rgba(30, 45, 110, .05),
+    0 10px 28px -8px rgba(30, 45, 110, .18),
+    0 30px 60px -24px rgba(30, 45, 110, .22);
+  --blur-chrome: saturate(170%) blur(24px);
+  --blur-sheet: saturate(160%) blur(32px);
+  --blur-toast: saturate(150%) blur(16px);
+
+  --radius-s: 10px; --radius-m: 14px; --radius-l: 20px;
+  --shadow: 0 1px 2px rgba(20,30,70,.04), 0 4px 16px rgba(20,30,70,.06);
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --ease: cubic-bezier(.25,.8,.25,1);
+
+  /* Text-safe variants (WCAG AA on --surface / --bg) */
+  --teal-text: #127A86;
+  --coral-text: #B8432A;
+  --button-bg: var(--navy);
+  --button-text: #FFFFFF;
+
+  /* Layout */
+  --gutter: 16px;
+  --tap: 44px;
+  --content-max: 680px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --tabbar-h: 56px;
+  --sidebar-w: 240px;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1120; --surface: #181C2E; --text: #EEF0F8; --text-2: #9AA0B8;
+    --separator: rgba(255,255,255,.08);
+    --teal-soft: #12343A; --leaf-soft: #15301C; --sun-soft: #3A3218; --coral-soft: #3A1E18;
+    --teal-text: #5CC6D1; --coral-text: #FF9A82;
+    --button-bg: var(--teal); --button-text: #0E1120;
+    --ambient-base: linear-gradient(180deg, #0C0F1D 0%, #0E1120 60%, #101426 100%);
+    --ambient:
+      radial-gradient(55% 40% at 10% -6%, rgba(26, 154, 168, .20), transparent 70%),
+      radial-gradient(50% 42% at 100% 6%, rgba(46, 58, 135, .38), transparent 70%),
+      radial-gradient(50% 42% at 92% 100%, rgba(242, 193, 78, .07), transparent 70%),
+      radial-gradient(40% 32% at 0% 92%, rgba(239, 106, 76, .06), transparent 70%);
+    --glass-1: rgba(32, 38, 64, .42); --glass-2: rgba(30, 35, 60, .56); --glass-3: rgba(38, 44, 74, .74);
+    --glass-chrome: rgba(16, 19, 34, .68); --glass-sheet: rgba(22, 26, 44, .82);
+    --glass-border: rgba(255, 255, 255, .09); --glass-edge: rgba(255, 255, 255, .16);
+    --glass-sheen: linear-gradient(135deg, rgba(255, 255, 255, .09) 0%, rgba(255, 255, 255, .02) 38%, rgba(255, 255, 255, 0) 60%);
+    --glass-glow: radial-gradient(120% 90% at 0% 0%, rgba(26, 154, 168, .20), transparent 55%);
+    --glass-shadow: 0 1px 1px rgba(0, 0, 0, .25), 0 10px 28px -10px rgba(0, 0, 0, .55);
+    --glass-shadow-strong: 0 1px 2px rgba(0, 0, 0, .3), 0 16px 40px -12px rgba(0, 0, 0, .65);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0E1120; --surface: #181C2E; --text: #EEF0F8; --text-2: #9AA0B8;
+  --separator: rgba(255,255,255,.08);
+  --teal-soft: #12343A; --leaf-soft: #15301C; --sun-soft: #3A3218; --coral-soft: #3A1E18;
+  --teal-text: #5CC6D1; --coral-text: #FF9A82;
+  --button-bg: var(--teal); --button-text: #0E1120;
+  --ambient-base: linear-gradient(180deg, #0C0F1D 0%, #0E1120 60%, #101426 100%);
+  --ambient:
+    radial-gradient(55% 40% at 10% -6%, rgba(26, 154, 168, .20), transparent 70%),
+    radial-gradient(50% 42% at 100% 6%, rgba(46, 58, 135, .38), transparent 70%),
+    radial-gradient(50% 42% at 92% 100%, rgba(242, 193, 78, .07), transparent 70%),
+    radial-gradient(40% 32% at 0% 92%, rgba(239, 106, 76, .06), transparent 70%);
+  --glass-1: rgba(32, 38, 64, .42); --glass-2: rgba(30, 35, 60, .56); --glass-3: rgba(38, 44, 74, .74);
+  --glass-chrome: rgba(16, 19, 34, .68); --glass-sheet: rgba(22, 26, 44, .82);
+  --glass-border: rgba(255, 255, 255, .09); --glass-edge: rgba(255, 255, 255, .16);
+  --glass-sheen: linear-gradient(135deg, rgba(255, 255, 255, .09) 0%, rgba(255, 255, 255, .02) 38%, rgba(255, 255, 255, 0) 60%);
+  --glass-glow: radial-gradient(120% 90% at 0% 0%, rgba(26, 154, 168, .20), transparent 55%);
+  --glass-shadow: 0 1px 1px rgba(0, 0, 0, .25), 0 10px 28px -10px rgba(0, 0, 0, .55);
+  --glass-shadow-strong: 0 1px 2px rgba(0, 0, 0, .3), 0 16px 40px -12px rgba(0, 0, 0, .65);
+  color-scheme: dark;
+}
+
+/*
+ * Fallbacks: no backdrop-filter support, or the user asked for less transparency →
+ * solid surfaces (still themed), so text never sits on an unblurred busy backdrop.
+ */
+/* `:root:not([data-theme="-"])` matches every root with the same specificity as the
+   dark-theme blocks above, so these later rules win in light, dark and auto. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root:not([data-theme="-"]) { --glass-chrome: var(--surface); --glass-sheet: var(--surface); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root:not([data-theme="-"]) {
+    --glass-1: var(--surface); --glass-2: var(--surface); --glass-3: var(--surface);
+    --glass-chrome: var(--surface); --glass-sheet: var(--surface);
+    --blur-chrome: none; --blur-sheet: none; --blur-toast: none;
+  }
+}
+
+/* Reset */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+img, svg { display: block; max-width: 100%; }
+input, button, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: var(--teal-text); text-decoration: none; }
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; background: var(--bg); }
+
+body {
+  min-height: 100dvh;
+  background: transparent; /* the ambient layer below shows through */
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 17px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/*
+ * Ambient light behind all glass. A fixed layer painted once and composited, so
+ * scrolling never repaints it (unlike background-attachment: fixed).
+ */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--ambient), var(--ambient-base);
+  pointer-events: none;
+}
+
+h1, h2, h3 { line-height: 1.2; font-weight: 700; }
+
+:focus-visible {
+  outline: 3px solid var(--teal);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Utilities */
+.num { font-variant-numeric: tabular-nums; }
+
+/* Keyboard users can jump past the navigation. */
+.skip-link {
+  position: fixed;
+  top: 8px; left: 8px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: var(--radius-s);
+  background: var(--glass-3);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: var(--glass-shadow);
+  transform: translateY(-150%);
+}
+.skip-link:focus { transform: none; }
+#content:focus { outline: none; }
+
+/* Centred column used by every signed-in page. */
+.page {
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+/* iOS inset-grouped card, as standard optical glass (no live blur — see tokens). */
+.card {
+  position: relative;
+  background-color: var(--glass-2);
+  background-image: var(--glass-sheen);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-m);
+  box-shadow: inset 0 1px 0 var(--glass-edge), var(--glass-shadow);
+  overflow: hidden;
+}
+
+/* Prominent panels (weekly progress heroes): denser glass, teal inner light, deeper float. */
+.glass-strong {
+  background-color: var(--glass-3);
+  background-image: var(--glass-sheen), var(--glass-glow);
+  border-radius: var(--radius-l);
+  box-shadow: inset 0 1px 0 var(--glass-edge), var(--glass-shadow-strong);
+}
+
+/*
+ * Interactive glass: lifts slightly and its edges brighten on hover.
+ * Only transform/opacity animate; the highlight lives on a click-through pseudo-element.
+ */
+.glass-interactive { transition: transform .2s var(--ease); }
+.glass-interactive::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--glass-edge), inset 0 0 28px rgba(255, 255, 255, .18);
+  opacity: 0;
+  transition: opacity .2s var(--ease);
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .glass-interactive:hover { transform: translateY(-2px); }
+  .glass-interactive:hover::after { opacity: 1; }
+}
+.glass-interactive:active { transform: scale(.99); }
+.glass-interactive:focus-visible::after { opacity: 1; }
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

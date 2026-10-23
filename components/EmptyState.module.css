@@ -1,0 +1,23 @@
+.empty {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 24px;
+  text-align: center;
+  isolation: isolate;
+}
+
+.watermark {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: .07;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.title { font-size: 19px; font-weight: 600; }
+.body { color: var(--text-2); max-width: 320px; }
+.body a { font-weight: 600; display: inline-block; padding: 12px 4px; }

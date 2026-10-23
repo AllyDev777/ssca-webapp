@@ -1,0 +1,32 @@
+/* Sticky compact bar overlays the top of the page (negative margin keeps layout stable). */
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: calc(44px + var(--safe-top));
+  margin: 0 calc(-1 * var(--gutter)) calc(-44px - var(--safe-top));
+  padding-top: var(--safe-top);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Real blur: cards scroll underneath. */
+  background: var(--glass-chrome);
+  backdrop-filter: var(--blur-chrome);
+  -webkit-backdrop-filter: var(--blur-chrome);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: 0 8px 24px -18px rgba(30, 45, 110, .3);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s var(--ease);
+}
+.bar[data-compact] { opacity: 1; }
+
+.barTitle { font-size: 17px; font-weight: 600; }
+
+.header { padding: calc(52px + var(--safe-top)) 0 16px; }
+.title { font-size: 34px; letter-spacing: -.01em; }
+.subtitle { color: var(--text-2); margin-top: 2px; }
+
+@media (min-width: 900px) {
+  .header { padding-top: 40px; }
+}

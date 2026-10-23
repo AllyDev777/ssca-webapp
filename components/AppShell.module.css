@@ -1,0 +1,8 @@
+.content {
+  min-height: 100dvh;
+  padding-bottom: calc(var(--tabbar-h) + var(--safe-bottom) + 24px);
+}
+
+@media (min-width: 900px) {
+  .content { padding-left: var(--sidebar-w); padding-bottom: 48px; }
+}

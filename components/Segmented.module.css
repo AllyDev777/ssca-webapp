@@ -1,0 +1,30 @@
+.control {
+  display: flex;
+  padding: 3px;
+  border-radius: 12px;
+  /* Recessed glass track */
+  background: var(--glass-1);
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 3px rgba(30, 45, 110, .08);
+}
+
+.segment {
+  flex: 1;
+  min-height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 500;
+  transition: background-color .15s var(--ease);
+}
+
+.segment:hover:not([aria-current="page"]) { background: var(--glass-1); }
+
+/* Selected: a raised glass pill with a lit top edge */
+.segment[aria-current="page"] {
+  background: var(--glass-3);
+  font-weight: 600;
+  box-shadow: inset 0 1px 0 var(--glass-edge), 0 1px 2px rgba(20, 30, 70, .08), 0 4px 10px -4px rgba(20, 30, 70, .18);
+}
