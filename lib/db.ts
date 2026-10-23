@@ -57,6 +57,17 @@ export async function query<T>(sql: string, params: SqlParam[] = [], db: Db = ge
   return rows as unknown as T[];
 }
 
+/**
+ * SELECT with LIMIT/OFFSET placeholders. Prepared statements treat `LIMIT ?` differently
+ * across MySQL/MariaDB versions (some reject the bound type), so this uses the text
+ * protocol: mysql2 still fills each `?` with a safely escaped value (numbers become
+ * plain integers). Pass page sizes/offsets as numbers.
+ */
+export async function queryPaged<T>(sql: string, params: SqlParam[] = [], db: Db = getPool()): Promise<T[]> {
+  const [rows] = await db.query<RowDataPacket[]>(sql, params);
+  return rows as unknown as T[];
+}
+
 /** SELECT returning the first row, or null. */
 export async function queryOne<T>(sql: string, params: SqlParam[] = [], db: Db = getPool()): Promise<T | null> {
   const rows = await query<T>(sql, params, db);

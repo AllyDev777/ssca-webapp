@@ -1,5 +1,5 @@
 import "server-only";
-import { query, queryOne } from "./db";
+import { query, queryOne, queryPaged } from "./db";
 import type { Role } from "./auth";
 import { addWeeks, formatDateTime, getWeekStart, weekEndsAt } from "./week";
 
@@ -186,7 +186,7 @@ function auditSummary(details: unknown): string | null {
 }
 
 export async function listAudit(limit: number): Promise<AuditEntry[]> {
-  const rows = await query<{
+  const rows = await queryPaged<{
     id: number;
     actor: string | null;
     action: string;
@@ -199,7 +199,7 @@ export async function listAudit(limit: number): Promise<AuditEntry[]> {
        FROM audit_log al LEFT JOIN users u ON u.id = al.actor_id
       ORDER BY al.id DESC
       LIMIT ?`,
-    [String(Math.min(Math.max(Math.trunc(limit), 1), 200))],
+    [Math.min(Math.max(Math.trunc(limit), 1), 200)],
   );
   return rows.map((r) => ({
     id: r.id,
@@ -245,7 +245,7 @@ export async function searchMembers(
 ): Promise<{ members: MemberRow[]; hasNext: boolean }> {
   const offset = (page - 1) * MEMBERS_PAGE_SIZE;
   const pattern = likePattern(q);
-  const rows = await query<{
+  const rows = await queryPaged<{
     id: number;
     name: string;
     email: string;
@@ -261,8 +261,7 @@ export async function searchMembers(
       WHERE (? = '' OR u.name LIKE ? OR u.email LIKE ?)
       ORDER BY ${MEMBER_SORTS[sort]}
       LIMIT ? OFFSET ?`,
-    // LIMIT/OFFSET as strings: MySQL 8's prepared statements reject numeric binds there.
-    [getWeekStart(), q, pattern, pattern, String(MEMBERS_PAGE_SIZE + 1), String(offset)],
+    [getWeekStart(), q, pattern, pattern, MEMBERS_PAGE_SIZE + 1, offset],
   );
   return {
     members: rows.slice(0, MEMBERS_PAGE_SIZE).map((r) => ({
