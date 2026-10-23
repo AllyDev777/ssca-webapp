@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   // Native module: keep it out of the server bundle.
-  serverExternalPackages: ["@node-rs/argon2"],
+  serverExternalPackages: ["@node-rs/argon2", "nodemailer"],
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

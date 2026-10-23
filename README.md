@@ -151,6 +151,7 @@ Open **http://localhost:3000** and sign in with the admin you just created. Memb
 | `npm run lint` | ESLint |
 | `npm run typecheck` | TypeScript, no output files |
 | `npm run create-admin` | Create or promote an admin from the terminal |
+| `npm run test-email -- you@example.com` | Checks the SMTP settings in `.env.local` and sends a sample password-reset email |
 
 The little round **"N"** button in the corner during `npm run dev` is the Next.js developer tool. It only appears in
 development, never in production.

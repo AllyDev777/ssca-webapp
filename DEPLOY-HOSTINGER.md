@@ -53,6 +53,9 @@ MAIL_FROM=SSCA <no-reply@societyofsaintcarloacutis.org>
 Create the sending mailbox first (hPanel → Emails → create `no-reply@…`). Without `SMTP_HOST` the app still works;
 the "Forgot password" page just tells members to ask an admin. Mail errors are logged as `[mail]`/`[auth]` lines.
 
+**Check the mail settings** (needs SSH/terminal in the app folder): `npm run test-email -- you@example.com`. It
+connects, logs in and sends a sample reset email, or prints exactly what failed (wrong password, port, certificate…).
+
 Do **not** set `NEXT_PUBLIC_BASE_PATH`, because the app is served at the subdomain root.
 HTTPS is required: session cookies are `__Host-` / `Secure` in production.
 
