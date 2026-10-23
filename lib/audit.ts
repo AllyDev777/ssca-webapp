@@ -14,7 +14,8 @@ export type AuditAction =
   | "user.deactivate"
   | "week.reopen"
   | "export.csv"
-  | "account.password_change";
+  | "account.password_change"
+  | "account.password_reset";
 
 type Details = Record<string, string | number | boolean | null>;
 

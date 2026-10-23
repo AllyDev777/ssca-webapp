@@ -278,6 +278,7 @@ Links, redirects, images, icons, the CSV export and the install manifest all pic
 | Account lockout | `actions/auth.ts` | 15 min after 5 wrong passwords |
 | Session length | `lib/session-cookie.ts` | 7 days, extended as you use it (sliding) |
 | Default theme | `lib/theme.ts` | Light (users can pick Auto / Light / Dark) |
+| Forgot-password email | `.env.local` / host env: `APP_URL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `MAIL_FROM` | Off until `SMTP_HOST` is set; links expire after 60 minutes and work once |
 | Activities and points | Admin → Activities | the 5 seeded activities, max 12 pts |
 
 All dates are stored in **UTC**; they are converted to IST only for display and for working out weeks.
@@ -411,7 +412,7 @@ lib/
   week.ts                       IST week maths and formatting
   rate-limit.ts, validation.ts, audit.ts, request.ts, theme.ts
 middleware.ts                   route gating, CSP nonce, sliding cookie renewal
-db/schema.sql, seed.sql, app-user.sql, cleanup.sql
+db/schema.sql, seed.sql, app-user.sql, cleanup.sql, migrations/ (one-off upgrades for existing databases)
 scripts/create-admin.ts
 ```
 

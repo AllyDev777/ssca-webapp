@@ -8,7 +8,7 @@ import { getOverview } from "@/lib/admin";
 import { requireAdmin } from "@/lib/auth";
 import { withBase } from "@/lib/base-path";
 import { addWeeks, formatShortDate, formatWeekRange } from "@/lib/week";
-import styles from "./admin.module.css";
+import styles from "../admin.module.css";
 
 export const metadata: Metadata = { title: "Admin" };
 

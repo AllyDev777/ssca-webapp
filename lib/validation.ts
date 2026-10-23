@@ -122,3 +122,14 @@ export const registerSchema = z
     path: ["confirm"],
     message: "Passwords do not match.",
   });
+
+// Not restricted to the allowed domains: any existing account may reset its password.
+export const forgotPasswordSchema = z.strictObject({ email });
+
+export const resetPasswordSchema = z
+  .strictObject({
+    token: z.string().regex(/^[A-Za-z0-9_-]{43}$/, "This reset link is invalid."),
+    password: newPassword,
+    confirm: z.string().max(PASSWORD_MAX),
+  })
+  .refine((d) => d.password === d.confirm, { path: ["confirm"], message: "Passwords do not match." });

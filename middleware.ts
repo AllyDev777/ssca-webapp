@@ -18,7 +18,7 @@ import {
  * Static security headers (X-Frame-Options, HSTS, …) are set in next.config.ts.
  */
 
-const PUBLIC_PAGES = new Set(["/login", "/register"]);
+const PUBLIC_PAGES = new Set(["/login", "/register", "/forgot-password", "/reset-password"]);
 const isDev = process.env.NODE_ENV !== "production";
 
 function contentSecurityPolicy(nonce: string): string {

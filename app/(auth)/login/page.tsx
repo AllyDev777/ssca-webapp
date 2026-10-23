@@ -11,13 +11,16 @@ type Props = { searchParams: Promise<Record<string, string | string[] | undefine
 
 export default async function LoginPage({ searchParams }: Props) {
   if (await getCurrentUser()) redirect("/");
-  const { next } = await searchParams;
+  const { next, reset } = await searchParams;
 
   return (
     <>
       <h1 className={styles.title}>Welcome back</h1>
       <p className={styles.lead}>Sign in to log this week’s activities.</p>
-      <LoginForm next={typeof next === "string" ? next : undefined} />
+      <LoginForm
+        next={typeof next === "string" ? next : undefined}
+        notice={reset === "1" ? "Your password was changed. Sign in with your new password." : undefined}
+      />
       <p className={styles.alt}>
         New here? <Link href="/register">Create an account</Link>
       </p>

@@ -12,6 +12,8 @@ location, not in a public web folder.
 ## 1. Database
 
 1. Import `db/schema.sql`, then `db/seed.sql` (the 5 default activities) into the app's database.
+   **Database already imported before 23 Oct 2026?** Also import `db/migrations/2026-10-23-password-resets.sql`
+   once (adds the table for "Forgot password"). It is safe to run more than once.
 2. The app's DB user needs only **SELECT, INSERT, UPDATE, DELETE** on that database. Don't grant ALL.
 
 ## 2. Node.js app (hPanel → Websites → Add Website → Node.js Apps → Upload files)
@@ -27,6 +29,8 @@ location, not in a public web folder.
 
 ## 3. Environment variables (set in hPanel, not committed in any file)
 
+Enter each value on its own, without the `# …` notes.
+
 ```
 DB_HOST=        # as provided by Hostinger for this database
 DB_PORT=3306
@@ -35,7 +39,19 @@ DB_PASSWORD=
 DB_NAME=
 DB_POOL_SIZE=5
 SESSION_SECRET= # 32+ random chars: node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
+
+# Forgot-password emails
+APP_URL=https://app.societyofsaintcarloacutis.org   # used to build the reset link; no trailing slash
+SMTP_HOST=smtp.hostinger.com                       # Hostinger email; or your provider's SMTP host
+SMTP_PORT=465                                      # 465 = SSL/TLS, 587 = STARTTLS
+SMTP_SECURE=true                                   # true for 465, false for 587
+SMTP_USER=no-reply@societyofsaintcarloacutis.org   # the mailbox login
+SMTP_PASSWORD=                                     # that mailbox's password
+MAIL_FROM=SSCA <no-reply@societyofsaintcarloacutis.org>
 ```
+
+Create the sending mailbox first (hPanel → Emails → create `no-reply@…`). Without `SMTP_HOST` the app still works;
+the "Forgot password" page just tells members to ask an admin. Mail errors are logged as `[mail]`/`[auth]` lines.
 
 Do **not** set `NEXT_PUBLIC_BASE_PATH`, because the app is served at the subdomain root.
 HTTPS is required: session cookies are `__Host-` / `Secure` in production.
@@ -48,7 +64,7 @@ HTTPS is required: session cookies are `__Host-` / `Secure` in production.
 
 ## 5. Maintenance
 
-Run `db/cleanup.sql` daily (cron or phpMyAdmin) to purge expired sessions and rate-limit rows.
+Run `db/cleanup.sql` daily (cron or phpMyAdmin) to purge expired sessions, rate-limit rows and old reset links.
 
 ## 6. Smoke test
 

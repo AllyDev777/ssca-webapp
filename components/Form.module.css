@@ -89,6 +89,9 @@
 
 .button {
   min-height: 50px;
+  display: flex; /* also used on links */
+  align-items: center;
+  justify-content: center;
   padding: 0 20px;
   border: 0;
   border-radius: var(--radius-m);
@@ -105,3 +108,19 @@
 }
 .button:active { transform: scale(.98); }
 .button:disabled { opacity: .6; cursor: progress; }
+
+/* Positive confirmation (e.g. "check your email", "password updated"). */
+.notice {
+  composes: alert;
+  background: var(--leaf-soft);
+}
+.notice::before { background: var(--leaf); }
+
+/* Quiet text link under a form ("Forgot password?"). */
+.subtle {
+  align-self: center;
+  display: inline-block;
+  padding: 12px 4px; /* 44px tap target */
+  font-size: 15px;
+  font-weight: 600;
+}

@@ -9,6 +9,9 @@ export const LIMITS = {
   register: { name: "register", max: 5, windowSec: 60 * 60 }, // per IP
   mutation: { name: "mutation", max: 60, windowSec: 60 }, // per user
   password: { name: "password", max: 5, windowSec: 15 * 60 }, // change-password attempts per user
+  resetRequestIp: { name: "reset-ip", max: 5, windowSec: 60 * 60 }, // forgot-password requests per IP
+  resetRequestEmail: { name: "reset-email", max: 3, windowSec: 60 * 60 }, // reset emails per address
+  resetSubmit: { name: "reset-submit", max: 10, windowSec: 15 * 60 }, // new-password submissions per IP
 } as const satisfies Record<string, Limit>;
 
 export type LimitResult = { ok: boolean; retryAfterSec: number };
