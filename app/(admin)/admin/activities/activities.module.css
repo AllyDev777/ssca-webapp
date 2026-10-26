@@ -98,3 +98,30 @@
 .checkRow input { flex: none; width: 22px; height: 22px; margin-top: 2px; accent-color: var(--teal); }
 .checkRow > span { display: flex; flex-direction: column; gap: 2px; font-size: 16px; }
 .checkHint { font-size: 13px; color: var(--text-2); }
+
+.item { flex-wrap: wrap; }
+.notesLink {
+  flex-basis: 100%;
+  min-height: 36px;
+  margin: -4px 0 4px 52px; /* lines up with the activity title, past the arrows */
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--teal-text);
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.notesFor { margin-top: -4px; font-weight: 600; }
+.notes { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.noteItem {
+  padding: 12px 14px;
+  border-radius: var(--radius-m);
+  background: var(--glass-1);
+  box-shadow: inset 0 1px 0 var(--glass-edge), inset 0 0 0 1px var(--glass-border);
+}
+.noteHead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 4px 12px; }
+.noteName { font-weight: 600; }
+.noteWeek { font-size: 13px; color: var(--text-2); }
+.noteBody { margin-top: 6px; white-space: pre-wrap; overflow-wrap: anywhere; }

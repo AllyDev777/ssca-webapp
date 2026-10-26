@@ -2,6 +2,7 @@
 
 import type { PoolConnection } from "mysql2/promise";
 import { revalidatePath } from "next/cache";
+import { listActivityNotes, type ActivityNote } from "@/lib/admin";
 import { recomputeTotals } from "@/lib/assessments";
 import { audit } from "@/lib/audit";
 import { requireAdmin, type SessionUser } from "@/lib/auth";
@@ -168,6 +169,21 @@ export async function moveActivity(input: unknown): Promise<AdminResult> {
       return { ok: true };
     }),
   );
+}
+
+export type ActivityNotesResult = { ok: true; notes: ActivityNote[] } | { ok: false; error: string };
+
+/** Read-only: members' notes on one activity (Admin -> Activities -> "View notes"). */
+export async function getActivityNotes(input: unknown): Promise<ActivityNotesResult> {
+  await requireAdmin();
+  const parsed = activityIdSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Invalid request." };
+  try {
+    return { ok: true, notes: await listActivityNotes(parsed.data.id) };
+  } catch (err) {
+    console.error("[admin] getActivityNotes failed:", err);
+    return { ok: false, error: "Couldn't load the notes. Please try again." };
+  }
 }
 
 /** Hard delete if never used; otherwise soft delete so history keeps its references. */

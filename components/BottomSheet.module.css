@@ -18,6 +18,9 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  max-height: 90dvh; /* long content (e.g. many notes) scrolls inside the sheet */
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 8px 20px calc(20px + var(--safe-bottom));
   /* Heaviest glass in the app: only exists while a sheet is open. */
   background-color: var(--glass-sheet);

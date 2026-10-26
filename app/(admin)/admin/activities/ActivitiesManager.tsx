@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import {
   deleteActivity,
+  getActivityNotes,
   moveActivity,
   saveActivity,
   setActivityActive,
@@ -14,8 +16,9 @@ import { Field } from "@/components/Field";
 import { GroupTabs, panelId, tabId } from "@/components/GroupTabs";
 import { Toast, useToast } from "@/components/Toast";
 import { Toggle } from "@/components/Toggle";
-import type { ActivityGroup, AdminActivity } from "@/lib/admin";
+import type { ActivityGroup, ActivityNote, AdminActivity } from "@/lib/admin";
 import { groupBy } from "@/lib/groups";
+import { ACTIVITY_NOTES_LIMIT } from "@/lib/note";
 import formStyles from "@/components/Form.module.css";
 import styles from "../admin.module.css";
 import local from "./activities.module.css";
@@ -29,6 +32,23 @@ export function ActivitiesManager({ activities, groups }: { activities: AdminAct
   const [deleting, setDeleting] = useState<AdminActivity | null>(null);
   const [busy, startTransition] = useTransition();
   const [toast, showToast] = useToast();
+  const [notesFor, setNotesFor] = useState<AdminActivity | null>(null);
+  const [notes, setNotes] = useState<ActivityNote[] | null>(null);
+  const [, startNotes] = useTransition();
+
+  function openNotes(activity: AdminActivity) {
+    setNotesFor(activity);
+    setNotes(null);
+    startNotes(async () => {
+      const res = await getActivityNotes({ id: activity.id });
+      if (res.ok) {
+        setNotes(res.notes);
+      } else {
+        setNotes([]);
+        showToast(res.error, "error");
+      }
+    });
+  }
 
   // One tab per group (including empty ones), plus "Other" if some activities have no group.
   const grouped = groupBy(activities);
@@ -135,6 +155,11 @@ export function ActivitiesManager({ activities, groups }: { activities: AdminAct
                     act(() => setActivityActive({ id: a.id, active: next }), next ? "Activated." : "Deactivated.")
                   }
                 />
+                {(a.allowsNote || a.noteCount > 0) && (
+                  <button type="button" className={local.notesLink} onClick={() => openNotes(a)}>
+                    View notes ({a.noteCount})
+                  </button>
+                )}
               </li>
             ))}
             </ul>
@@ -170,6 +195,39 @@ export function ActivitiesManager({ activities, groups }: { activities: AdminAct
                   }
             }
           />
+        )}
+      </BottomSheet>
+
+      <BottomSheet open={notesFor !== null} onClose={() => setNotesFor(null)} title="Members’ notes">
+        {notesFor && <p className={local.notesFor}>{notesFor.title}</p>}
+        {notes === null ? (
+          <p className={local.sheetText} role="status">
+            Loading…
+          </p>
+        ) : notes.length === 0 ? (
+          <p className={local.sheetText}>No notes yet. They appear here when members tick this activity and write something.</p>
+        ) : (
+          <>
+            <ul className={local.notes} aria-label="Notes">
+              {notes.map((n, i) => (
+                <li key={`${n.userId}-${n.weekStart}-${i}`} className={local.noteItem}>
+                  <div className={local.noteHead}>
+                    <Link href={`/admin/members/${n.userId}/${n.weekStart}`} className={local.noteName}>
+                      {n.name}
+                    </Link>
+                    <span className={local.noteWeek}>
+                      {n.weekLabel}
+                      {n.submitted ? "" : " · draft"}
+                    </span>
+                  </div>
+                  <p className={local.noteBody}>{n.note}</p>
+                </li>
+              ))}
+            </ul>
+            {notes.length >= ACTIVITY_NOTES_LIMIT && (
+              <p className={local.help}>Showing the latest {ACTIVITY_NOTES_LIMIT}. Use the CSV export for older notes.</p>
+            )}
+          </>
         )}
       </BottomSheet>
 

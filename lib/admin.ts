@@ -1,8 +1,9 @@
 import "server-only";
 import { query, queryOne, queryPaged } from "./db";
 import { GROUPED_ORDER } from "./groups";
+import { ACTIVITY_NOTES_LIMIT } from "./note";
 import type { Role } from "./auth";
-import { addWeeks, formatDateTime, getWeekStart, weekEndsAt } from "./week";
+import { addWeeks, formatDateTime, formatWeekRange, getWeekStart, weekEndsAt } from "./week";
 
 /**
  * Admin read models. Callers must have passed requireAdmin().
@@ -18,6 +19,7 @@ export type AdminActivity = {
   points: number;
   isActive: boolean;
   usedIn: number; // assessments that reference it (drafts included)
+  noteCount: number; // ticked items with a member note
   groupId: number | null;
   groupName: string | null;
   allowsNote: boolean;
@@ -29,6 +31,37 @@ export async function listGroups(): Promise<ActivityGroup[]> {
   return query<ActivityGroup>("SELECT id, name FROM activity_groups ORDER BY sort_order, id");
 }
 
+export type ActivityNote = {
+  userId: number;
+  name: string;
+  weekStart: string;
+  weekLabel: string;
+  submitted: boolean;
+  note: string;
+};
+
+/** Members' notes on one activity, newest week first (ticked items with text only). */
+export async function listActivityNotes(activityId: number): Promise<ActivityNote[]> {
+  const rows = await queryPaged<{ user_id: number; name: string; week_start: string; status: string; note: string }>(
+    `SELECT u.id AS user_id, u.name, wa.week_start, wa.status, ai.note
+       FROM assessment_items ai
+       JOIN weekly_assessments wa ON wa.id = ai.assessment_id
+       JOIN users u ON u.id = wa.user_id
+      WHERE ai.activity_id = ? AND ai.completed = 1 AND ai.note IS NOT NULL AND ai.note <> ''
+      ORDER BY wa.week_start DESC, ai.updated_at DESC
+      LIMIT ?`,
+    [activityId, ACTIVITY_NOTES_LIMIT],
+  );
+  return rows.map((r) => ({
+    userId: r.user_id,
+    name: r.name,
+    weekStart: r.week_start,
+    weekLabel: formatWeekRange(r.week_start),
+    submitted: r.status === "submitted",
+    note: r.note,
+  }));
+}
+
 export async function listActivities(): Promise<AdminActivity[]> {
   const rows = await query<{
     id: number;
@@ -37,12 +70,15 @@ export async function listActivities(): Promise<AdminActivity[]> {
     points: number;
     is_active: number;
     used_in: number;
+    note_count: number;
     group_id: number | null;
     group_name: string | null;
     allows_note: number;
   }>(
     `SELECT a.id, a.title, a.description, a.points, a.is_active, a.allows_note, g.id AS group_id, g.name AS group_name,
-            (SELECT COUNT(*) FROM assessment_items ai WHERE ai.activity_id = a.id) AS used_in
+            (SELECT COUNT(*) FROM assessment_items ai WHERE ai.activity_id = a.id) AS used_in,
+            (SELECT COUNT(*) FROM assessment_items ai
+              WHERE ai.activity_id = a.id AND ai.completed = 1 AND ai.note IS NOT NULL AND ai.note <> '') AS note_count
        FROM activities a LEFT JOIN activity_groups g ON g.id = a.group_id
       WHERE a.deleted_at IS NULL
       ORDER BY ${GROUPED_ORDER}`,
@@ -54,6 +90,7 @@ export async function listActivities(): Promise<AdminActivity[]> {
     points: Number(r.points),
     isActive: Number(r.is_active) === 1,
     usedIn: Number(r.used_in),
+    noteCount: Number(r.note_count),
     groupId: r.group_id,
     groupName: r.group_name,
     allowsNote: Number(r.allows_note) === 1,
