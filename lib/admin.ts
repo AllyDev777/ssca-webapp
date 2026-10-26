@@ -19,7 +19,6 @@ export type AdminActivity = {
   points: number;
   isActive: boolean;
   usedIn: number; // assessments that reference it (drafts included)
-  noteCount: number; // ticked items with a member note
   groupId: number | null;
   groupName: string | null;
   allowsNote: boolean;
@@ -70,15 +69,12 @@ export async function listActivities(): Promise<AdminActivity[]> {
     points: number;
     is_active: number;
     used_in: number;
-    note_count: number;
     group_id: number | null;
     group_name: string | null;
     allows_note: number;
   }>(
     `SELECT a.id, a.title, a.description, a.points, a.is_active, a.allows_note, g.id AS group_id, g.name AS group_name,
-            (SELECT COUNT(*) FROM assessment_items ai WHERE ai.activity_id = a.id) AS used_in,
-            (SELECT COUNT(*) FROM assessment_items ai
-              WHERE ai.activity_id = a.id AND ai.completed = 1 AND ai.note IS NOT NULL AND ai.note <> '') AS note_count
+            (SELECT COUNT(*) FROM assessment_items ai WHERE ai.activity_id = a.id) AS used_in
        FROM activities a LEFT JOIN activity_groups g ON g.id = a.group_id
       WHERE a.deleted_at IS NULL
       ORDER BY ${GROUPED_ORDER}`,
@@ -90,7 +86,6 @@ export async function listActivities(): Promise<AdminActivity[]> {
     points: Number(r.points),
     isActive: Number(r.is_active) === 1,
     usedIn: Number(r.used_in),
-    noteCount: Number(r.note_count),
     groupId: r.group_id,
     groupName: r.group_name,
     allowsNote: Number(r.allows_note) === 1,
@@ -109,7 +104,7 @@ export type Overview = {
   avgPoints: number | null;
   avgPercent: number | null;
   top: { id: number; name: string; total: number; max: number }[];
-  perActivity: { id: number; title: string; done: number; rate: number | null }[];
+  perActivity: { id: number; title: string; done: number; rate: number | null; allowsNote: boolean; noteCount: number }[];
   trend: TrendPoint[];
   recent: AuditEntry[];
 };
@@ -151,8 +146,10 @@ export async function getOverview(): Promise<Overview> {
         LIMIT 5`,
       [weekStart],
     ),
-    query<{ id: number; title: string; done: string | number }>(
-      `SELECT a.id, a.title, COALESCE(SUM(ai.completed), 0) AS done
+    query<{ id: number; title: string; done: string | number; allows_note: number; note_count: number }>(
+      `SELECT a.id, a.title, COALESCE(SUM(ai.completed), 0) AS done, a.allows_note,
+              (SELECT COUNT(*) FROM assessment_items n
+                WHERE n.activity_id = a.id AND n.completed = 1 AND n.note IS NOT NULL AND n.note <> '') AS note_count
          FROM activities a
          LEFT JOIN activity_groups g ON g.id = a.group_id
          LEFT JOIN (assessment_items ai
@@ -160,7 +157,7 @@ export async function getOverview(): Promise<Overview> {
                     JOIN users u ON u.id = wa.user_id AND u.is_active = 1)
                 ON ai.activity_id = a.id
         WHERE a.is_active = 1 AND a.deleted_at IS NULL
-        GROUP BY a.id, a.title, a.sort_order, g.id, g.sort_order
+        GROUP BY a.id, a.title, a.sort_order, a.allows_note, g.id, g.sort_order
         ORDER BY ${GROUPED_ORDER}`,
       [weekStart],
     ),
@@ -216,6 +213,8 @@ export async function getOverview(): Promise<Overview> {
       title: a.title,
       done: Number(a.done),
       rate: submitted > 0 ? Math.round((Number(a.done) / submitted) * 100) : null,
+      allowsNote: Number(a.allows_note) === 1,
+      noteCount: Number(a.note_count),
     })),
     trend,
     recent,

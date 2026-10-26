@@ -9,6 +9,7 @@ import { requireAdmin } from "@/lib/auth";
 import { withBase } from "@/lib/base-path";
 import { addWeeks, formatShortDate, formatWeekRange } from "@/lib/week";
 import styles from "../admin.module.css";
+import { ActivityCompletionList } from "./ActivityCompletionList";
 
 export const metadata: Metadata = { title: "Admin" };
 
@@ -82,19 +83,7 @@ export default async function AdminOverview() {
           <h2 id="act-h" className={styles.h2}>Completion by activity</h2>
           <span className={styles.headNote}>of submitted weeks</span>
         </div>
-        <ul className={`card ${styles.list}`}>
-          {o.perActivity.map((a) => (
-            <li key={a.id} className={styles.row}>
-              <span className={styles.grow}>
-                <span className={styles.title}>{a.title}</span>
-                <span className={styles.meter} aria-hidden="true">
-                  <span className={styles.meterFill} style={{ transform: `scaleX(${(a.rate ?? 0) / 100})` }} />
-                </span>
-              </span>
-              <span className={`${styles.value} num`}>{a.rate !== null ? `${a.rate}%` : "—"}</span>
-            </li>
-          ))}
-        </ul>
+        <ActivityCompletionList activities={o.perActivity} />
       </section>
 
       <section className={styles.section} aria-labelledby="trend-h">
