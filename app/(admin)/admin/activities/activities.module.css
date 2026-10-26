@@ -68,7 +68,6 @@
   font-weight: 600;
 }
 
-.group + .group { margin-top: 20px; }
 .groupTitle {
   display: flex;
   justify-content: space-between;

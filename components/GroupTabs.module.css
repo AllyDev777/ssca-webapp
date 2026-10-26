@@ -1,20 +1,15 @@
-/* Scrolls sideways on narrow screens; bleeds to the screen edge so chips aren't clipped mid-gutter. */
+/* Tabs wrap onto extra rows when they don't fit, so every group stays visible. */
 .tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  margin: 0 calc(-1 * var(--gutter)) 12px;
-  padding: 4px var(--gutter) 8px;
-  overflow-x: auto;
-  scroll-snap-type: x proximity;
-  scroll-padding-inline: var(--gutter);
-  scrollbar-width: none;
+  margin-bottom: 14px;
   scroll-margin-top: calc(56px + var(--safe-top)); /* clears the compact title bar when scrolled to */
 }
-.tabs::-webkit-scrollbar { display: none; }
 
 .tab {
-  flex: none;
-  scroll-snap-align: start;
+  flex: 0 1 auto;
+  max-width: 100%;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -27,9 +22,10 @@
   color: var(--text);
   font-size: 15px;
   font-weight: 600;
-  white-space: nowrap;
+  text-align: left;
   transition: transform .15s var(--ease);
 }
+.tab > span:first-child { overflow-wrap: anywhere; } /* very long group names wrap inside the chip */
 .tab:active { transform: scale(.97); }
 
 .tab[aria-selected="true"] {
@@ -39,6 +35,7 @@
 }
 
 .badge {
+  flex: none;
   min-width: 34px;
   padding: 2px 7px;
   border-radius: 999px;
@@ -51,7 +48,8 @@
 .tab[data-complete] .badge { background: var(--leaf-soft); color: var(--text); }
 .tab[aria-selected="true"][data-complete] .badge { background: var(--leaf); color: #fff; }
 
-@media (min-width: 900px) {
-  /* Room to wrap on desktop instead of scrolling. */
-  .tabs { flex-wrap: wrap; overflow: visible; margin-inline: 0; padding-inline: 0; }
+/* Small phones: tighter chips so more fit per row. */
+@media (max-width: 380px) {
+  .tabs { gap: 6px; }
+  .tab { padding: 0 11px; font-size: 14px; gap: 6px; }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type KeyboardEvent } from "react";
+import { useRef, type KeyboardEvent } from "react";
 import styles from "./GroupTabs.module.css";
 
 export type GroupTab = { key: string; label: string; badge?: string; complete?: boolean };
@@ -17,19 +17,9 @@ type Props = {
 export const tabId = (prefix: string, key: string) => `${prefix}-tab-${key}`;
 export const panelId = (prefix: string, key: string) => `${prefix}-panel-${key}`;
 
-/** Horizontally scrolling tab strip (WAI-ARIA tabs: arrow keys, Home/End, roving tabindex). */
+/** Wrapping tab strip (WAI-ARIA tabs: arrow keys, Home/End, roving tabindex). */
 export function GroupTabs({ tabs, active, onChange, idPrefix, label }: Props) {
   const refs = useRef(new Map<string, HTMLButtonElement>());
-  const mounted = useRef(false);
-
-  // Keep the selected tab visible in the strip (skip the first render so the page doesn't jump).
-  useEffect(() => {
-    if (!mounted.current) {
-      mounted.current = true;
-      return;
-    }
-    refs.current.get(active)?.scrollIntoView({ block: "nearest", inline: "nearest" });
-  }, [active]);
 
   function onKeyDown(e: KeyboardEvent<HTMLButtonElement>, index: number) {
     const last = tabs.length - 1;
