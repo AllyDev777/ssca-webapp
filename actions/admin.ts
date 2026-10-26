@@ -56,35 +56,53 @@ export async function saveActivity(_prev: ActivityFormState, formData: FormData)
   const admin = await requireAdmin();
   const parsed = activityFormSchema.safeParse(formFields(formData));
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error) };
-  const { id, title, description, points } = parsed.data;
+  const { id, title, description, points, groupId, allowsNote } = parsed.data;
 
   const result = await run(admin, "saveActivity", (ip) =>
     transaction(async (conn): Promise<AdminResult> => {
+      let groupName: string | null = null;
+      if (groupId !== null) {
+        const group = await queryOne<{ name: string }>("SELECT name FROM activity_groups WHERE id = ?", [groupId], conn);
+        if (!group) return { ok: false, error: "That group no longer exists. Please refresh." };
+        groupName = group.name;
+      }
+      // New (or moved) activities go to the end of their group.
+      const nextSortSql = "SELECT COALESCE(MAX(sort_order), 0) + 10 AS next FROM activities WHERE group_id <=> ?";
+      const details = { title, points, group: groupName, allowsNote };
+
       if (id) {
-        const before = await queryOne<{ points: number }>(
-          "SELECT points FROM activities WHERE id = ? AND deleted_at IS NULL FOR UPDATE",
+        const before = await queryOne<{ points: number; group_id: number | null }>(
+          "SELECT points, group_id FROM activities WHERE id = ? AND deleted_at IS NULL FOR UPDATE",
           [id],
           conn,
         );
         if (!before) return NOT_FOUND;
-        await execute("UPDATE activities SET title = ?, description = ?, points = ? WHERE id = ?", [title, description, points, id], conn);
+        const moved = before.group_id !== groupId;
+        const sort = moved ? (await queryOne<{ next: number }>(nextSortSql, [groupId], conn))?.next : null;
+        await execute(
+          `UPDATE activities SET title = ?, description = ?, points = ?, group_id = ?, allows_note = ?,
+                  sort_order = COALESCE(?, sort_order)
+            WHERE id = ?`,
+          [title, description, points, groupId, allowsNote ? 1 : 0, sort ?? null, id],
+          conn,
+        );
         await audit(conn, {
           actorId: admin.id,
           action: "activity.update",
           entity: "activity",
           entityId: id,
-          details: { title, points, previousPoints: Number(before.points) },
+          details: { ...details, previousPoints: Number(before.points) },
           ip,
         });
         return { ok: true };
       }
+      const sort = (await queryOne<{ next: number }>(nextSortSql, [groupId], conn))?.next ?? 10;
       const inserted = await execute(
-        `INSERT INTO activities (title, description, points, sort_order)
-         SELECT ?, ?, ?, COALESCE(MAX(sort_order), 0) + 10 FROM activities`,
-        [title, description, points],
+        "INSERT INTO activities (title, description, group_id, points, allows_note, sort_order) VALUES (?, ?, ?, ?, ?, ?)",
+        [title, description, groupId, points, allowsNote ? 1 : 0, sort],
         conn,
       );
-      await audit(conn, { actorId: admin.id, action: "activity.create", entity: "activity", entityId: inserted.insertId, details: { title, points }, ip });
+      await audit(conn, { actorId: admin.id, action: "activity.create", entity: "activity", entityId: inserted.insertId, details, ip });
       return { ok: true };
     }),
   );
@@ -123,9 +141,16 @@ export async function moveActivity(input: unknown): Promise<AdminResult> {
 
   return run(admin, "moveActivity", (ip) =>
     transaction(async (conn) => {
+      // Reordering happens within the activity's own group (the checklist tab).
+      const target = await queryOne<{ group_id: number | null }>(
+        "SELECT group_id FROM activities WHERE id = ? AND deleted_at IS NULL FOR UPDATE",
+        [id],
+        conn,
+      );
+      if (!target) return NOT_FOUND;
       const rows = await query<{ id: number; title: string }>(
-        "SELECT id, title FROM activities WHERE deleted_at IS NULL ORDER BY sort_order, id FOR UPDATE",
-        [],
+        "SELECT id, title FROM activities WHERE deleted_at IS NULL AND group_id <=> ? ORDER BY sort_order, id FOR UPDATE",
+        [target.group_id],
         conn,
       );
       const from = rows.findIndex((r) => r.id === id);

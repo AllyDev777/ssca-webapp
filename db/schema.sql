@@ -32,17 +32,28 @@ CREATE TABLE IF NOT EXISTS sessions (
   INDEX idx_sessions_expires (expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS activity_groups (                -- checklist tabs, e.g. "Spiritual"
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(60) NOT NULL UNIQUE,
+  sort_order SMALLINT NOT NULL DEFAULT 0,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS activities (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   title VARCHAR(150) NOT NULL,
   description VARCHAR(500) NULL,
+  group_id INT UNSIGNED NULL,
   points TINYINT UNSIGNED NOT NULL CHECK (points BETWEEN 0 AND 100),
+  allows_note TINYINT(1) NOT NULL DEFAULT 0,       -- shows a free-text box when ticked
   sort_order SMALLINT NOT NULL DEFAULT 0,
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   deleted_at DATETIME NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_activities_active_sort (is_active, sort_order)
+  INDEX idx_activities_active_sort (is_active, sort_order),
+  INDEX idx_activities_group (group_id, sort_order),
+  CONSTRAINT fk_activities_group FOREIGN KEY (group_id) REFERENCES activity_groups(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS weekly_assessments (
@@ -67,6 +78,7 @@ CREATE TABLE IF NOT EXISTS assessment_items (
   activity_title VARCHAR(150) NOT NULL,          -- snapshot
   points_awarded TINYINT UNSIGNED NOT NULL,      -- snapshot of points at time of completion
   completed TINYINT(1) NOT NULL DEFAULT 0,
+  note VARCHAR(500) NULL,                       -- member's free text (activities with allows_note)
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uq_assessment_activity (assessment_id, activity_id),
   INDEX idx_items_activity_completed (activity_id, completed), -- per-activity completion stats

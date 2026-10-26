@@ -23,3 +23,17 @@
 .status[data-state="missed"] { background: var(--coral-soft); }
 
 .list { padding: 0; }
+
+.group + .group { margin-top: 20px; }
+.groupTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 0 4px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--text-2);
+}
+.groupCount { text-transform: none; letter-spacing: 0; }

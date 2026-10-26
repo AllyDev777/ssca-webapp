@@ -13,14 +13,15 @@ import { BottomSheet } from "@/components/BottomSheet";
 import { Field } from "@/components/Field";
 import { Toast, useToast } from "@/components/Toast";
 import { Toggle } from "@/components/Toggle";
-import type { AdminActivity } from "@/lib/admin";
+import type { ActivityGroup, AdminActivity } from "@/lib/admin";
+import { groupBy } from "@/lib/groups";
 import formStyles from "@/components/Form.module.css";
 import styles from "../admin.module.css";
 import local from "./activities.module.css";
 
 type Editing = AdminActivity | "new" | null;
 
-export function ActivitiesManager({ activities }: { activities: AdminActivity[] }) {
+export function ActivitiesManager({ activities, groups }: { activities: AdminActivity[]; groups: ActivityGroup[] }) {
   const [editing, setEditing] = useState<Editing>(null);
   const [deleting, setDeleting] = useState<AdminActivity | null>(null);
   const [busy, startTransition] = useTransition();
@@ -48,51 +49,62 @@ export function ActivitiesManager({ activities }: { activities: AdminActivity[] 
       {activities.length === 0 ? (
         <p className={`card ${styles.empty}`}>No activities yet. Add the first one.</p>
       ) : (
-        <ul className={`card ${styles.list}`} aria-label="Activities">
-          {activities.map((a, i) => (
-            <li key={a.id} className={`${styles.row} ${local.item}`} data-inactive={!a.isActive || undefined}>
-              <div className={local.order}>
-                <button
-                  type="button"
-                  className={local.arrow}
-                  aria-label={`Move ${a.title} up`}
-                  disabled={busy || i === 0}
-                  onClick={() => act(() => moveActivity({ id: a.id, direction: "up" }))}
-                >
-                  ▲
-                </button>
-                <button
-                  type="button"
-                  className={local.arrow}
-                  aria-label={`Move ${a.title} down`}
-                  disabled={busy || i === activities.length - 1}
-                  onClick={() => act(() => moveActivity({ id: a.id, direction: "down" }))}
-                >
-                  ▼
-                </button>
-              </div>
+        groupBy(activities).map((group) => (
+          <section key={group.key} className={local.group} aria-labelledby={`admin-group-${group.key}`}>
+            <h2 id={`admin-group-${group.key}`} className={local.groupTitle}>
+              {group.name}
+              <span className="num">
+                {group.items.filter((a) => a.isActive).reduce((sum, a) => sum + a.points, 0)} pts
+              </span>
+            </h2>
+            <ul className={`card ${styles.list}`} aria-label={group.name}>
+              {group.items.map((a, i) => (
+                <li key={a.id} className={`${styles.row} ${local.item}`} data-inactive={!a.isActive || undefined}>
+                  <div className={local.order}>
+                    <button
+                      type="button"
+                      className={local.arrow}
+                      aria-label={`Move ${a.title} up`}
+                      disabled={busy || i === 0}
+                      onClick={() => act(() => moveActivity({ id: a.id, direction: "up" }))}
+                    >
+                      ▲
+                    </button>
+                    <button
+                      type="button"
+                      className={local.arrow}
+                      aria-label={`Move ${a.title} down`}
+                      disabled={busy || i === group.items.length - 1}
+                      onClick={() => act(() => moveActivity({ id: a.id, direction: "down" }))}
+                    >
+                      ▼
+                    </button>
+                  </div>
 
-              <button type="button" className={local.main} onClick={() => setEditing(a)} aria-label={`Edit ${a.title}`}>
-                <span className={styles.title}>{a.title}</span>
-                {a.description && <span className={styles.sub}>{a.description}</span>}
-                <span className={styles.sub}>
-                  {a.isActive ? "Active" : "Inactive"}
-                  {a.usedIn > 0 ? ` · used in ${a.usedIn} week${a.usedIn === 1 ? "" : "s"}` : ""}
-                </span>
-              </button>
+                  <button type="button" className={local.main} onClick={() => setEditing(a)} aria-label={`Edit ${a.title}`}>
+                    <span className={styles.title}>{a.title}</span>
+                    {a.allowsNote && <span className={local.tag}>Has note box</span>}
+                    {a.description && <span className={styles.sub}>{a.description}</span>}
+                    <span className={styles.sub}>
+                      {a.isActive ? "Active" : "Inactive"}
+                      {a.usedIn > 0 ? ` · used in ${a.usedIn} week${a.usedIn === 1 ? "" : "s"}` : ""}
+                    </span>
+                  </button>
 
-              <span className={`${local.pill} num`}>+{a.points}</span>
-              <Toggle
-                checked={a.isActive}
-                label={`${a.title} active`}
-                disabled={busy}
-                onChange={(next) =>
-                  act(() => setActivityActive({ id: a.id, active: next }), next ? "Activated." : "Deactivated.")
-                }
-              />
-            </li>
-          ))}
-        </ul>
+                  <span className={`${local.pill} num`}>+{a.points}</span>
+                  <Toggle
+                    checked={a.isActive}
+                    label={`${a.title} active`}
+                    disabled={busy}
+                    onChange={(next) =>
+                      act(() => setActivityActive({ id: a.id, active: next }), next ? "Activated." : "Deactivated.")
+                    }
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
       )}
       <p className={local.help}>
         Points changes apply to this week and future weeks. Submitted weeks keep the points they earned.
@@ -107,6 +119,7 @@ export function ActivitiesManager({ activities }: { activities: AdminActivity[] 
           <ActivityForm
             key={editing === "new" ? "new" : editing.id}
             activity={editing === "new" ? null : editing}
+            groups={groups}
             onSaved={() => {
               setEditing(null);
               showToast("Saved.");
@@ -166,10 +179,12 @@ export function ActivitiesManager({ activities }: { activities: AdminActivity[] 
 
 function ActivityForm({
   activity,
+  groups,
   onSaved,
   onDelete,
 }: {
   activity: AdminActivity | null;
+  groups: ActivityGroup[];
   onSaved: () => void;
   onDelete?: () => void;
 }) {
@@ -211,6 +226,33 @@ function ActivityForm({
           defaultValue={activity?.points ?? 1}
           error={errors.points}
         />
+        <div className={formStyles.row}>
+          <label htmlFor="activity-group" className={formStyles.label}>
+            Group (checklist tab)
+          </label>
+          <select
+            id="activity-group"
+            name="groupId"
+            className={`${formStyles.input} ${local.select}`}
+            defaultValue={activity ? (activity.groupId ?? "") : (groups[0]?.id ?? "")}
+            aria-invalid={errors.groupId ? true : undefined}
+          >
+            {groups.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+            <option value="">Other (no group)</option>
+          </select>
+          {errors.groupId && <p className={formStyles.fieldError}>{errors.groupId}</p>}
+        </div>
+        <label className={`${formStyles.row} ${local.checkRow}`}>
+          <input type="checkbox" name="allowsNote" defaultChecked={activity?.allowsNote ?? false} />
+          <span>
+            Members can add a note
+            <span className={local.checkHint}>Shows a text box when ticked. Admins see it in the member’s week and the CSV.</span>
+          </span>
+        </label>
       </div>
       <button type="submit" className={formStyles.button} disabled={pending}>
         {pending ? "Saving…" : activity ? "Save changes" : "Add activity"}

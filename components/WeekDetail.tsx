@@ -1,8 +1,10 @@
 import type { WeekView } from "@/lib/assessments";
+import { groupBy } from "@/lib/groups";
 import { getWeekStart } from "@/lib/week";
 import { ChecklistRow } from "./ChecklistRow";
 import { EmptyState } from "./EmptyState";
 import { ProgressRing } from "./ProgressRing";
+import rowStyles from "./ChecklistRow.module.css";
 import styles from "./WeekDetail.module.css";
 
 /** Read-only view of one past week (member history and admin member view). */
@@ -40,19 +42,39 @@ export function WeekDetail({ week }: { week: WeekView }) {
         </div>
       </section>
 
-      <ul className={`card ${styles.list}`} aria-label="Activities">
-        {week.items.map((item) => (
-          <ChecklistRow
-            key={item.activityId}
-            id={item.activityId}
-            title={item.title}
-            description={item.description}
-            points={item.points}
-            checked={item.completed}
-            disabled
-          />
-        ))}
-      </ul>
+      {groupBy(week.items).map((group) => {
+        const groupDone = group.items.filter((i) => i.completed).length;
+        const headingId = `group-${group.key}`;
+        return (
+          <section key={group.key} className={styles.group} aria-labelledby={headingId}>
+            <h2 id={headingId} className={styles.groupTitle}>
+              {group.name}
+              <span className={`${styles.groupCount} num`}>
+                {groupDone}/{group.items.length}
+              </span>
+            </h2>
+            <ul className={`card ${styles.list}`}>
+              {group.items.map((item) => (
+                <ChecklistRow
+                  key={item.activityId}
+                  id={item.activityId}
+                  title={item.title}
+                  description={item.description}
+                  points={item.points}
+                  checked={item.completed}
+                  disabled
+                >
+                  {item.completed && item.note && (
+                    <div className={rowStyles.extra}>
+                      <p className={rowStyles.noteText}>{item.note}</p>
+                    </div>
+                  )}
+                </ChecklistRow>
+              ))}
+            </ul>
+          </section>
+        );
+      })}
     </>
   );
 }

@@ -84,3 +84,33 @@
   75% { transform: scale(1.08); }
   100% { transform: scale(1); }
 }
+
+/* Content under a row (note box / submitted note), aligned with the title. */
+.extra { padding: 0 16px 14px 60px; }
+.noteLabel { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: var(--text-2); }
+.noteInput {
+  display: block;
+  width: 100%;
+  min-height: 84px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: var(--radius-s);
+  background: var(--glass-1);
+  box-shadow: inset 0 0 0 1px var(--glass-border);
+  color: var(--text);
+  font-size: 16px; /* no zoom-on-focus on iOS */
+  line-height: 1.4;
+  resize: vertical;
+}
+.noteInput:focus-visible { outline: 3px solid var(--teal); outline-offset: 1px; }
+.noteMeta { display: flex; justify-content: space-between; gap: 8px; margin-top: 4px; font-size: 12px; color: var(--text-2); }
+.noteMeta [data-state="error"] { color: var(--coral-text); }
+.noteText {
+  padding: 10px 12px;
+  border-radius: var(--radius-s);
+  background: var(--glass-1);
+  box-shadow: inset 0 0 0 1px var(--glass-border);
+  font-size: 15px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

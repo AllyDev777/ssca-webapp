@@ -29,6 +29,7 @@ const HEADER = [
   "Percent",
   "Submitted at (IST)",
   "Completed activities",
+  "Notes",
 ];
 
 /** Quotes every cell; neutralises spreadsheet formulas (= + - @, tab, CR) with a leading apostrophe. */
@@ -54,6 +55,7 @@ type ExportRow = {
   max_points: number | null;
   submitted_at: Date | null;
   completed: string | null;
+  notes: string | null;
 };
 
 export async function GET(req: NextRequest) {
@@ -103,7 +105,12 @@ export async function GET(req: NextRequest) {
                      FROM assessment_items ai JOIN activities a ON a.id = ai.activity_id
                     WHERE ai.assessment_id = wa.id AND ai.completed = 1
                       -- drafts, like their totals, only count currently offered activities
-                      AND (wa.status = 'submitted' OR (a.is_active = 1 AND a.deleted_at IS NULL))) AS completed
+                      AND (wa.status = 'submitted' OR (a.is_active = 1 AND a.deleted_at IS NULL))) AS completed,
+                  (SELECT GROUP_CONCAT(CONCAT(ai.activity_title, ': ', REPLACE(REPLACE(ai.note, '\r', ''), '\n', ' '))
+                                       ORDER BY ai.activity_id SEPARATOR ' | ')
+                     FROM assessment_items ai JOIN activities a ON a.id = ai.activity_id
+                    WHERE ai.assessment_id = wa.id AND ai.completed = 1 AND ai.note IS NOT NULL AND ai.note <> ''
+                      AND (wa.status = 'submitted' OR (a.is_active = 1 AND a.deleted_at IS NULL))) AS notes
              FROM users u
              LEFT JOIN weekly_assessments wa ON wa.user_id = u.id AND wa.week_start = ?
             WHERE wa.id IS NOT NULL OR (u.is_active = 1 AND u.created_at < ?)
@@ -127,6 +134,7 @@ export async function GET(req: NextRequest) {
             max ? Math.round((total / max) * 100) : null,
             r.submitted_at ? istTimestamp(r.submitted_at) : null,
             r.completed,
+            r.notes,
           ]);
         }
         controller.enqueue(encoder.encode(chunk));

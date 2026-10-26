@@ -11,7 +11,7 @@ import {
 import { requireUser } from "@/lib/auth";
 import { execute, transaction } from "@/lib/db";
 import { hitMutationLimit } from "@/lib/rate-limit";
-import { submitWeekSchema, toggleItemSchema } from "@/lib/validation";
+import { saveNoteSchema, submitWeekSchema, toggleItemSchema } from "@/lib/validation";
 import { isWeekEditable } from "@/lib/week";
 
 export type WeekActionResult = ({ ok: true } & Totals) | { ok: false; error: string };
@@ -51,6 +51,41 @@ export async function toggleItem(input: unknown): Promise<WeekActionResult> {
     });
   } catch (err) {
     console.error("[week] toggleItem failed:", err);
+    return { ok: false, error: UNEXPECTED };
+  }
+}
+
+export type NoteResult = { ok: true } | { ok: false; error: string };
+
+/** Saves the member's free-text note for one activity (only activities that allow notes). */
+export async function saveItemNote(input: unknown): Promise<NoteResult> {
+  const user = await requireUser();
+  const parsed = saveNoteSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid request." };
+  const { weekStart, activityId, note } = parsed.data;
+  if (!isWeekEditable(weekStart)) return { ok: false, error: CLOSED };
+
+  try {
+    if (!(await hitMutationLimit(user.id)).ok) return { ok: false, error: TOO_FAST };
+
+    return await transaction(async (conn): Promise<NoteResult> => {
+      const assessment = await lockAssessment(user.id, weekStart, conn);
+      if (assessment.status !== "draft") return { ok: false, error: SUBMITTED };
+
+      await syncDraftItems(assessment.id, conn);
+      const result = await execute(
+        `UPDATE assessment_items ai JOIN activities a ON a.id = ai.activity_id
+            SET ai.note = ?
+          WHERE ai.assessment_id = ? AND ai.activity_id = ?
+            AND a.allows_note = 1 AND a.is_active = 1 AND a.deleted_at IS NULL`,
+        [note, assessment.id, activityId],
+        conn,
+      );
+      if (result.affectedRows === 0) return { ok: false, error: "Notes can't be added to that activity." };
+      return { ok: true };
+    });
+  } catch (err) {
+    console.error("[week] saveItemNote failed:", err);
     return { ok: false, error: UNEXPECTED };
   }
 }

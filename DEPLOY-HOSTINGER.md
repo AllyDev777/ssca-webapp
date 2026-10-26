@@ -14,6 +14,9 @@ location, not in a public web folder.
 1. Import `db/schema.sql`, then `db/seed.sql` (the 5 default activities) into the app's database.
    **Database already imported before 23 Oct 2026?** Also import `db/migrations/2026-10-23-password-resets.sql`
    once (adds the table for "Forgot password"). It is safe to run more than once.
+   **Database imported before 26 Oct 2026?** Import `db/migrations/2026-10-26-activity-groups.sql` **once**
+   (checklist groups + member notes), then import `db/seed.sql` again to add the groups and new activities
+   (`seed.sql` never duplicates or overwrites anything, so re-running it is safe).
 2. The app's DB user needs only **SELECT, INSERT, UPDATE, DELETE** on that database. Don't grant ALL.
 
 ## 2. Node.js app (hPanel → Websites → Add Website → Node.js Apps → Upload files)

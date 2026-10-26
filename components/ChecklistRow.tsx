@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { CheckIcon } from "./icons";
 import styles from "./ChecklistRow.module.css";
 
@@ -11,13 +12,15 @@ type Props = {
   /** Plays the spring animation; set only for user-initiated changes. */
   animate?: boolean;
   onToggle?: () => void;
+  /** Extra content under the row, e.g. a note box. */
+  children?: ReactNode;
 };
 
 /**
  * One iOS-style checklist row backed by a real (visually hidden) checkbox.
  * The whole row is the label, so its accessible name is title + description + points.
  */
-export function ChecklistRow({ id, title, description, points, checked, disabled, animate, onToggle }: Props) {
+export function ChecklistRow({ id, title, description, points, checked, disabled, animate, onToggle, children }: Props) {
   return (
     <li className={styles.item}>
       <label className={styles.row} data-disabled={disabled || undefined}>
@@ -43,6 +46,7 @@ export function ChecklistRow({ id, title, description, points, checked, disabled
           <span className="visually-hidden"> points</span>
         </span>
       </label>
+      {children}
     </li>
   );
 }

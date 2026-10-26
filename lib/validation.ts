@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ALLOWED_PROVIDERS_TEXT, isAllowedEmailDomain } from "./email-domains";
+import { NOTE_MAX } from "./note";
 import { PASSWORD_MAX, passwordProblem } from "./password-rules";
 import { isIsoDate, isWeekStart } from "./week";
 
@@ -36,6 +37,16 @@ export const toggleItemSchema = z.strictObject({
 
 export const submitWeekSchema = z.strictObject({ weekStart: weekStartSchema });
 
+export const saveNoteSchema = z.strictObject({
+  weekStart: weekStartSchema,
+  activityId: z.number().int().positive().max(4_294_967_295),
+  note: z
+    .string()
+    .max(NOTE_MAX, `Please keep it under ${NOTE_MAX} characters.`)
+    .transform((v) => v.trim())
+    .transform((v) => (v === "" ? null : v)),
+});
+
 // --- Admin ------------------------------------------------------------------
 
 const id = z.coerce.number().int().positive().max(4_294_967_295);
@@ -53,6 +64,9 @@ export const activityFormSchema = z.strictObject({
     .int("Points must be a whole number.")
     .min(0, "Points must be 0–100.")
     .max(100, "Points must be 0–100."),
+  groupId: z.union([z.literal(""), id]).transform((v) => (v === "" ? null : v)),
+  // Checkbox: present ("on") when ticked, absent otherwise.
+  allowsNote: z.literal("on").optional().transform((v) => v === "on"),
 });
 
 export const activityIdSchema = z.strictObject({ id });

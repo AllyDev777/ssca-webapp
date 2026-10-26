@@ -62,3 +62,17 @@
   .summaryText { align-items: center; }
   .status { align-self: center; }
 }
+
+.nextGroup {
+  display: block;
+  width: 100%;
+  min-height: var(--tap);
+  margin-top: 10px;
+  border: 0;
+  border-radius: var(--radius-m);
+  background: var(--glass-1);
+  box-shadow: inset 0 1px 0 var(--glass-edge), inset 0 0 0 1px var(--glass-border);
+  color: var(--teal-text);
+  font-size: 16px;
+  font-weight: 600;
+}

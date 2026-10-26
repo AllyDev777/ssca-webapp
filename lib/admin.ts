@@ -1,5 +1,6 @@
 import "server-only";
 import { query, queryOne, queryPaged } from "./db";
+import { GROUPED_ORDER } from "./groups";
 import type { Role } from "./auth";
 import { addWeeks, formatDateTime, getWeekStart, weekEndsAt } from "./week";
 
@@ -17,7 +18,16 @@ export type AdminActivity = {
   points: number;
   isActive: boolean;
   usedIn: number; // assessments that reference it (drafts included)
+  groupId: number | null;
+  groupName: string | null;
+  allowsNote: boolean;
 };
+
+export type ActivityGroup = { id: number; name: string };
+
+export async function listGroups(): Promise<ActivityGroup[]> {
+  return query<ActivityGroup>("SELECT id, name FROM activity_groups ORDER BY sort_order, id");
+}
 
 export async function listActivities(): Promise<AdminActivity[]> {
   const rows = await query<{
@@ -27,12 +37,15 @@ export async function listActivities(): Promise<AdminActivity[]> {
     points: number;
     is_active: number;
     used_in: number;
+    group_id: number | null;
+    group_name: string | null;
+    allows_note: number;
   }>(
-    `SELECT a.id, a.title, a.description, a.points, a.is_active,
+    `SELECT a.id, a.title, a.description, a.points, a.is_active, a.allows_note, g.id AS group_id, g.name AS group_name,
             (SELECT COUNT(*) FROM assessment_items ai WHERE ai.activity_id = a.id) AS used_in
-       FROM activities a
+       FROM activities a LEFT JOIN activity_groups g ON g.id = a.group_id
       WHERE a.deleted_at IS NULL
-      ORDER BY a.sort_order, a.id`,
+      ORDER BY ${GROUPED_ORDER}`,
   );
   return rows.map((r) => ({
     id: r.id,
@@ -41,6 +54,9 @@ export async function listActivities(): Promise<AdminActivity[]> {
     points: Number(r.points),
     isActive: Number(r.is_active) === 1,
     usedIn: Number(r.used_in),
+    groupId: r.group_id,
+    groupName: r.group_name,
+    allowsNote: Number(r.allows_note) === 1,
   }));
 }
 
@@ -101,13 +117,14 @@ export async function getOverview(): Promise<Overview> {
     query<{ id: number; title: string; done: string | number }>(
       `SELECT a.id, a.title, COALESCE(SUM(ai.completed), 0) AS done
          FROM activities a
+         LEFT JOIN activity_groups g ON g.id = a.group_id
          LEFT JOIN (assessment_items ai
                     JOIN weekly_assessments wa ON wa.id = ai.assessment_id AND wa.week_start = ? AND wa.status = 'submitted'
                     JOIN users u ON u.id = wa.user_id AND u.is_active = 1)
                 ON ai.activity_id = a.id
         WHERE a.is_active = 1 AND a.deleted_at IS NULL
-        GROUP BY a.id, a.title, a.sort_order
-        ORDER BY a.sort_order, a.id`,
+        GROUP BY a.id, a.title, a.sort_order, g.id, g.sort_order
+        ORDER BY ${GROUPED_ORDER}`,
       [weekStart],
     ),
     query<{ week_start: string; n: number; avg_ratio: string | null }>(

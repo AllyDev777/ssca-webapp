@@ -1,0 +1,57 @@
+/* Scrolls sideways on narrow screens; bleeds to the screen edge so chips aren't clipped mid-gutter. */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin: 0 calc(-1 * var(--gutter)) 12px;
+  padding: 4px var(--gutter) 8px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: var(--gutter);
+  scrollbar-width: none;
+  scroll-margin-top: calc(56px + var(--safe-top)); /* clears the compact title bar when scrolled to */
+}
+.tabs::-webkit-scrollbar { display: none; }
+
+.tab {
+  flex: none;
+  scroll-snap-align: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--tap);
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--glass-2);
+  box-shadow: inset 0 1px 0 var(--glass-edge), inset 0 0 0 1px var(--glass-border);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: transform .15s var(--ease);
+}
+.tab:active { transform: scale(.97); }
+
+.tab[aria-selected="true"] {
+  background: var(--button-bg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), 0 6px 16px -8px color-mix(in srgb, var(--button-bg) 70%, transparent);
+  color: var(--button-text);
+}
+
+.badge {
+  min-width: 34px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-2) 14%, transparent);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+.tab[aria-selected="true"] .badge { background: rgba(255, 255, 255, .22); }
+.tab[data-complete] .badge { background: var(--leaf-soft); color: var(--text); }
+.tab[aria-selected="true"][data-complete] .badge { background: var(--leaf); color: #fff; }
+
+@media (min-width: 900px) {
+  /* Room to wrap on desktop instead of scrolling. */
+  .tabs { flex-wrap: wrap; overflow: visible; margin-inline: 0; padding-inline: 0; }
+}

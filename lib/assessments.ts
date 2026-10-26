@@ -1,6 +1,7 @@
 import "server-only";
 import type { PoolConnection } from "mysql2/promise";
 import { execute, query, queryOne, transaction, type Db } from "./db";
+import { GROUPED_ORDER } from "./groups";
 import { editingClosesAt, formatDateTime, isWeekEditable, openLateWeek } from "./week";
 
 /**
@@ -20,6 +21,11 @@ export type WeekItem = {
   description: string | null;
   points: number;
   completed: boolean;
+  groupId: number | null;
+  groupName: string | null;
+  /** The activity shows a free-text box when ticked. */
+  allowsNote: boolean;
+  note: string | null;
 };
 
 export type WeekView = {
@@ -135,7 +141,17 @@ async function draftNeedsSync(userId: number, weekStart: string): Promise<boolea
   return Number(row?.stale ?? 1) === 1;
 }
 
-type ItemRow = { activity_id: number; title: string; description: string | null; points: number; completed: number };
+type ItemRow = {
+  activity_id: number;
+  title: string;
+  description: string | null;
+  points: number;
+  completed: number;
+  note: string | null;
+  allows_note: number;
+  group_id: number | null;
+  group_name: string | null;
+};
 type ViewRow = { id: number; status: WeekStatus; total_points: number; max_points: number; submitted_at: Date | null };
 
 /**
@@ -173,10 +189,13 @@ export async function loadWeek(
 
   // Drafts hide deactivated activities; submitted weeks show their frozen snapshot.
   const items = await query<ItemRow>(
-    `SELECT ai.activity_id, ai.activity_title AS title, a.description, ai.points_awarded AS points, ai.completed
-       FROM assessment_items ai JOIN activities a ON a.id = ai.activity_id
+    `SELECT ai.activity_id, ai.activity_title AS title, a.description, ai.points_awarded AS points, ai.completed,
+            ai.note, a.allows_note, g.id AS group_id, g.name AS group_name
+       FROM assessment_items ai
+       JOIN activities a ON a.id = ai.activity_id
+       LEFT JOIN activity_groups g ON g.id = a.group_id
       WHERE ai.assessment_id = ? ${row.status === "draft" ? `AND ${ACTIVE}` : ""}
-      ORDER BY a.sort_order, a.id`,
+      ORDER BY ${GROUPED_ORDER}`,
     [row.id],
   );
 
@@ -189,6 +208,10 @@ export async function loadWeek(
       description: i.description,
       points: Number(i.points),
       completed: Number(i.completed) === 1,
+      groupId: i.group_id,
+      groupName: i.group_name,
+      allowsNote: Number(i.allows_note) === 1,
+      note: i.note,
     })),
     total: Number(row.total_points),
     max: Number(row.max_points),

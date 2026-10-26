@@ -67,3 +67,35 @@
   font-size: 17px;
   font-weight: 600;
 }
+
+.group + .group { margin-top: 20px; }
+.groupTitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 0 4px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--text-2);
+}
+.groupTitle span { text-transform: none; letter-spacing: 0; }
+
+.tag {
+  align-self: flex-start;
+  margin: 2px 0;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--sun-soft);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.select { appearance: auto; min-height: 32px; }
+
+.checkRow { flex-direction: row; align-items: flex-start; gap: 12px; cursor: pointer; }
+.checkRow input { flex: none; width: 22px; height: 22px; margin-top: 2px; accent-color: var(--teal); }
+.checkRow > span { display: flex; flex-direction: column; gap: 2px; font-size: 16px; }
+.checkHint { font-size: 13px; color: var(--text-2); }
